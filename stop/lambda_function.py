@@ -14,9 +14,9 @@ def lambda_handler(event, context):
         reason="Killed by API call"
     )
     
-    in_queue_name = connection_id + "-input"
-    out_queue_name = connection_id + "-output"
-    src_queue_name = connection_id + "-src"
+    in_queue_name = connection_id + "-input.fifo"
+    out_queue_name = connection_id + "-output.fifo"
+    src_queue_name = connection_id + "-src.fifo"
     
     try:
         in_queue_url = sqs.get_queue_url(QueueName=in_queue_name)["QueueUrl"]

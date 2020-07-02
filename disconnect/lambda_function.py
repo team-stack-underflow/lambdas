@@ -6,9 +6,9 @@ sqs = boto3.client('sqs')
 def lambda_handler(event, context):
     id = event["requestContext"]["connectionId"][:-1]
     
-    in_queue_name = id + "-input"
-    out_queue_name = id + "-output"
-    src_queue_name = id + "-src"
+    in_queue_name = id + "-input.fifo"
+    out_queue_name = id + "-output.fifo"
+    src_queue_name = id + "-src.fifo"
     
     in_queue_url = sqs.get_queue_url(QueueName=in_queue_name)["QueueUrl"]
     out_queue_url = sqs.get_queue_url(QueueName=out_queue_name)["QueueUrl"]

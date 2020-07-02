@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     task_name = event["lang"] + "-" + event["mode"]
     
     if event["mode"] == "compile":
-        src_queue = sqs.get_queue_url(QueueName=id+"-src")
+        src_queue = sqs.get_queue_url(QueueName=id+"-src.fifo")
         sqs.send_message(
             QueueUrl=src_queue["QueueUrl"],
             MessageBody=event["prog"],
