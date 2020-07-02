@@ -8,11 +8,17 @@ def lambda_handler(event, context):
     id = event["requestContext"]["connectionId"][:-1]
     
     in_queue = sqs.create_queue(
-        QueueName=id+"-input"
+        QueueName=id+"-input.fifo",
+        Attributes={
+            "FifoQueue": "true"
+        }
     )
     
     out_queue = sqs.create_queue(
-        QueueName=id+"-output"
+        QueueName=id+"-output.fifo",
+        Attributes={
+            "FifoQueue": "true"
+        }
     )
     
     out_queue_arn = sqs.get_queue_attributes(
@@ -27,7 +33,10 @@ def lambda_handler(event, context):
     )
     
     src_queue = sqs.create_queue(
-        QueueName=id+"-src"
+        QueueName=id+"-src.fifo",
+        Attributes={
+            "FifoQueue": "true"
+        }
     )
     
     return {
