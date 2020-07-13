@@ -5,9 +5,11 @@ import boto3
 sqs = boto3.client('sqs')
 
 def lambda_handler(event, context):
-    id = event["requestContext"]["connectionId"][:-1]
-    msg = json.loads(event["body"])["input"]
-    url = "https://sqs.us-east-1.amazonaws.com/%s/%s-input.fifo" % (os.environ["USER_ID"], id)
+    connection_id = event["requestContext"]["connectionId"][:-1]
+    body = json.loads(event["body"])
+    msg = body["input"]
+    container_id = body["containerId"]
+    url = "https://sqs.us-east-1.amazonaws.com/%s/%s-%s-input.fifo" % (os.environ["USER_ID"], connection_id, container_id)
     
     response = sqs.send_message(
         QueueUrl=url,
