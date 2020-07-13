@@ -4,18 +4,51 @@ import boto3
 
 ecs = boto3.client('ecs')
 sqs = boto3.client('sqs')
+lmb = boto3.client('lambda')
 
 def lambda_handler(event, context):
-    id = event["requestContext"]["connectionId"][:-1]
-    event = json.loads(event["body"])
+    connection_id = event["requestContext"]["connectionId"][:-1]
+    body = json.loads(event["body"])
     
-    task_name = event["lang"] + "-" + event["mode"]
+    task_name = body["lang"] + "-" + body["mode"]
+    container_id = event["requestContext"]["requestId"][:-1]
+    queue_id = connection_id + "-" + container_id
     
-    if event["mode"] == "compile":
-        src_queue = sqs.get_queue_url(QueueName=id+"-src.fifo")
+    in_queue = sqs.create_queue(
+        QueueName=queue_id+"-input.fifo",
+        Attributes={
+            "FifoQueue": "true"
+        }
+    )
+    
+    out_queue = sqs.create_queue(
+        QueueName=queue_id+"-output.fifo",
+        Attributes={
+            "FifoQueue": "true"
+        }
+    )
+    
+    out_queue_arn = sqs.get_queue_attributes(
+        QueueUrl=out_queue["QueueUrl"],
+        AttributeNames=["QueueArn"]
+    )["Attributes"]["QueueArn"]
+    
+    out_queue_bind = lmb.create_event_source_mapping(
+        EventSourceArn=out_queue_arn,
+        FunctionName='runnable-output',
+        Enabled=True
+    )
+
+    if body["mode"] == "compile":
+        src_queue = sqs.create_queue(
+            QueueName=queue_id+"-src.fifo",
+            Attributes={
+                "FifoQueue": "true"
+            }
+        )
         sqs.send_message(
             QueueUrl=src_queue["QueueUrl"],
-            MessageBody=event["prog"],
+            MessageBody=body["prog"],
             MessageDeduplicationId="ProgramSrc",
             MessageGroupId="ProgramSrc"
         )
@@ -52,8 +85,12 @@ def lambda_handler(event, context):
                             "value": os.environ["USER_ID"]
                         },
                         {
+                            "name": "CLIENT_ID",
+                            "value": connection_id,
+                        },
+                        {
                             "name": "RUN_ID",
-                            "value": id,
+                            "value": container_id,
                         }
                         ]
                     
@@ -62,8 +99,9 @@ def lambda_handler(event, context):
         },
         taskDefinition=task_name
     )
-    
-    container_id = ecs_response["tasks"][0]["taskArn"].split("/")[1]
+
+    # currently unused
+    task_id = ecs_response["tasks"][0]["taskArn"].split("/")[1]
     
     return {
         "statusCode": 200,
