@@ -48,16 +48,19 @@ These functions are invoked by the user as required.
 
 This function is to be invoked when the user wishes to launch a new container instance to run a program.
 
+Note that this function is secured with an API key to prevent unauthorized access to backend resources. Contact the developers for a key.
+
 Request properties:
 - `"action"`: Must always be `"launch"`.
+- `"api-key"`: API key to authenticate the request.
 - `"lang"`: Language of the program to be run. Current available options are `"python"`, `"c"`, `"java"`, `"javascript"`.
 - `"mode"`: Execution mode. Current available options are `"repl"`, `"compile"`.
 - `"prog"`: Required only if `"mode"` is `"compile"`. A string containing the source code of the program to be run.
 
 Example requests:
 ```json
-{"action": "launch", "lang": "c", "mode": "repl"}
-{"action": "launch", "lang": "python", "mode": "compile", "prog": "print(input())"}
+{"action": "launch", "api-key": "my-api-key", "lang": "c", "mode": "repl"}
+{"action": "launch", "api-key": "my-api-key", "lang": "python", "mode": "compile", "prog": "print(input())"}
 ```
 
 Response properties:
