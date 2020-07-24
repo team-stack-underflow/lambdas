@@ -7,8 +7,7 @@ The Runnable backend consists of a web socket API, with the following functions:
 2. Launch
 3. Input
 4. Output
-5. Stop
-6. Disconnect
+5. Disconnect
 
 All requests (client to server) and responses (server to client) are to be in the form of strings that can be parsed into JSON format.
 
@@ -18,7 +17,7 @@ These functions are invoked automatically by the system. No user input is requir
 
 ### 1. Connect
 
-This function is automatically invoked when a new connection is being established between client and server. It sets up the required resources for subsequent program execution, such as message queues.
+This function is automatically invoked when a new connection is being established between client and server. **However, there is currently no functionality attached.**
 
 Responses: None.
 
@@ -27,11 +26,17 @@ Responses: None.
 When a running user program writes a line to standard output, this function is automatically invoked. It will send the string of output back to the client.
 
 Response properties:
-- `"output"`: Output string from the REPL environment or compiled program
+- `"output"`: Output string from the REPL environment or compiled program.
+- `"containerId"`: Identifies which container instance produced the output. Clients may use this field to filter out responses from unwanted containers.
+
+Example response:
+```json
+{"output": "Hello World!", "containerId": "b19ee7bd-75f5-4444-8542-1eb307dfc176"}
+```
 
 ### 3. Disconnect
 
-This function is automatically invoked when a client has disconnected. It cleans up allocated resources such as running containers.
+This function is automatically invoked when a client has disconnected. It cleans up allocated resources such as running containers and message queues.
 
 Responses: None.
 
@@ -56,7 +61,7 @@ Example requests:
 ```
 
 Response properties:
-- `"containerId"`: String containing the ID of the container instance that was launched, which is needed to stop the container.
+- `"containerId"`: String containing the ID of the container instance that was launched, which is needed for future interactions.
 
 Example response:
 ```json
@@ -70,29 +75,9 @@ This function is to be invoked when the user wishes to send input to the running
 Request properties:
 - `"action"`: Must always be `"input"`.
 - `"input"`: String of input to be sent to the program.
+- `"input"`: String containing the ID of the container instance where the input is to be sent.
 
 Example request:
 ```json
-{"action": "input", "input": "Hello World!"}
-```
-
-### 3. Stop
-
-This function is to be invoked when the user wishes to terminate a running container instance. 
-
-Request properties:
-- `"action"`: Must always be `"stop"`.
-- `"containerId"`: String containing the ID of the container instance to stop.
-
-Example request:
-```json
-{"action": "stop", "containerId": "0a54f44f-7974-4244-9a76-7c33d5852803"}
-```
-
-Response properties:
-- `"output"`: A message acknowledging that the container has been stopped.
-
-Example response:
-```json
-{"output": "Program stopped!"}
+{"action": "input", "input": "Hello World!", "containerId": "b19ee7bd-75f5-4444-8542-1eb307dfc176"}
 ```
