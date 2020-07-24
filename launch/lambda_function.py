@@ -10,6 +10,18 @@ def lambda_handler(event, context):
     connection_id = event["requestContext"]["connectionId"][:-1]
     body = json.loads(event["body"])
     
+    if "api-key" not in body:
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"error": "Missing API Key"})
+        }
+    
+    if body["api-key"] != os.environ["API_KEY"]:
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"error": "Invalid API Key"})
+        }
+    
     task_name = body["lang"] + "-" + body["mode"]
     container_id = event["requestContext"]["requestId"][:-1]
     queue_id = connection_id + "-" + container_id
