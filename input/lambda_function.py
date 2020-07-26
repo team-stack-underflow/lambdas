@@ -4,6 +4,8 @@ import boto3
 
 sqs = boto3.client('sqs')
 
+box_suffix = "-boxed"
+
 def lambda_handler(event, context):
     connection_id = event["requestContext"]["connectionId"][:-1]
     body = json.loads(event["body"])
@@ -13,7 +15,7 @@ def lambda_handler(event, context):
     
     response = sqs.send_message(
         QueueUrl=url,
-        MessageBody=msg,
+        MessageBody=msg+box_suffix,
         MessageDeduplicationId=event["requestContext"]["requestId"],
         MessageGroupId="ProgramInput"
     )
